@@ -46,7 +46,7 @@ module Soba
       :host => 'web-api.soba-project.com',
       :port => 80,
       :base_path => '/webapi',
-      :version => nil
+      :version => 1.4
     }
 
     def initialize(params)
@@ -258,7 +258,7 @@ module Soba
         end
         return res
       else
-        raise 'FAILED'
+          raise 'FAILED'
       end      
     end
 
