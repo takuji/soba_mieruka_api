@@ -1,5 +1,16 @@
 require_relative '../lib/soba/mieruka'
 
+CONFIG = {
+  :api_key => 'your_api_key',
+  :private_key => 'your_private_key',
+  #:version => '1.4'
+}
+
+ACCOUNT = {
+  :user_name => 'your_soba_mieruka_account',
+  :password => 'your_account_password'
+}
+
 def gen_str(len)
   a = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
   Array.new(len){a[rand(a.size)]}.join
@@ -7,11 +18,11 @@ end
 
 describe Soba::Mieruka do
   before do
-    @m = Soba::Mieruka.new(:api_key => 'test_api_key', :private_key => 'open_sesami', :host => 'test-web-api.soba-project.com', :version => '1.4')
+    @m = Soba::Mieruka.new(CONFIG)
   end
   
   def valid_account
-    {:user_name => 'shimokawa1@soba', :password => 'shimokawa1'}
+    ACCOUNT
   end
   
   it 'can log in with valid attributes.' do

@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{This library is for developing web sites which publish command files to create new sessions or to join them for SOBA mieruka Client application.}
   s.rubyforge_project = "soba-mieruka"
 
-  s.files         = `git ls-files`.split("\n")
+  s.files         = `git ls-files`.split("\n").delete_if{|e| e =~ /^spec\//}
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
