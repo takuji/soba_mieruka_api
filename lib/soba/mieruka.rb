@@ -36,6 +36,14 @@ module Soba
     end
     
   end
+
+  class ApiError < StandardError
+    def initialize(response)
+      @error_code = response.error_code
+      @error_message = response.error_message
+    end
+    attr_reader :error_code, :error_message
+  end
   
   
   class Mieruka
@@ -72,11 +80,7 @@ module Soba
       val = "api_key=#{@params[:api_key]}&user_name=#{CGI.escape(params[:user_name])}&password=#{params[:password]}"
       response = http.post(path, val)
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :token
-        end
-        res.token = CGI.unescapeHTML(doc.root.elements["token"].get_text.to_s)
-        @token = res.token
+        @token = CGI.unescapeHTML(doc.root.elements["token"].get_text.to_s)
       end
     end
     
@@ -84,10 +88,7 @@ module Soba
       # Returns a Command object
       response = request_with_auth(:GET, '/logout')
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :url
-        end
-        res.url = CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s)
+        url = CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s)
       end
     end
 
@@ -95,11 +96,10 @@ module Soba
       required_params params, :session_name, :session_description
       response = request_with_auth(:POST, '/create_session', params)
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :url, :soba_session_id
-        end
-        res.url = CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s)
-        res.soba_session_id = CGI.unescapeHTML(doc.root.elements["soba-session-id"].get_text.to_s) 
+        Struct.new(:url, :soba_session_id).new(
+          CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s),
+          CGI.unescapeHTML(doc.root.elements["soba-session-id"].get_text.to_s)
+        )
       end
     end
 
@@ -109,10 +109,7 @@ module Soba
       response = request_with_auth(:GET, "/join_session?session_id=#{sid}")
       puts response.body
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :url
-        end
-        res.url = CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s)
+        Struct.new(:url).new(CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s))
       end
     end
 
@@ -120,12 +117,8 @@ module Soba
       # Returns an Array of Session object
       response = request_with_auth(:GET, "/session_list")
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :sessions
-        end
-        res.sessions = []
-        doc.elements.each('session-list-response/session-list/session') do |elm|
-          res.sessions << Session.create_from_session_element(elm)
+        doc.elements.collect('session-list-response/session-list/session') do |elm|
+          Session.create_from_session_element(elm)
         end
       end
     end
@@ -135,12 +128,8 @@ module Soba
       response = request_with_auth(:GET, "/user_list")
       #puts response.body
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :users
-        end
-        res.users = []
-        doc.elements.each('user-list-response/user') do |elm|
-          res.users << User.create_from_element(elm)
+        doc.elements.collect('user-list-response/user') do |elm|
+          User.create_from_element(elm)
         end
       end
     end
@@ -158,12 +147,8 @@ module Soba
     def rooms(params={})
       response = request_with_auth(:GET, '/rooms', params)
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :rooms
-        end
-        res.rooms = []
-        doc.elements.each('*/room') do |elm|
-          res.rooms << Room.create_from_room_element(elm)
+        doc.elements.collect('*/room') do |elm|
+          Room.create_from_room_element(elm)
         end        
       end
     end
@@ -172,10 +157,7 @@ module Soba
       required_params params, :name, :description
       response = request_with_auth(:POST, '/create_room', params)
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :room
-        end
-        res.room = Room.create_from_room_element(doc.root.elements['room'])
+        Room.create_from_room_element(doc.root.elements['room'])
       end
     end
 
@@ -187,11 +169,7 @@ module Soba
     def groups(params={})
       response = request_with_auth(:GET, '/groups', params)
       make_response(response) do |doc, res|
-        class << res
-          attr_accessor :groups
-        end
-        res.groups = []
-        doc.elements.each('*/group') do |elm|
+        doc.elements.map('*/group') do |elm|
           res.groups << Group.create_from_element(elm)
         end        
       end
@@ -253,12 +231,15 @@ module Soba
     def make_response(http_response, &block)
       if http_response.message == 'OK'
         res = ApiResponse.new(http_response)
-        if res.ok? && block
-          block.call(res.doc, res)
+        if res.ok?
+          if block
+            block.call(res.doc, res)
+          end
+        else
+          raise ApiError.new(res)
         end
-        return res
       else
-          raise 'FAILED'
+        raise http_response.message
       end      
     end
 

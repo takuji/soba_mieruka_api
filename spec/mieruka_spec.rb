@@ -1,14 +1,14 @@
 require_relative '../lib/soba/mieruka'
 
 CONFIG = {
-  :api_key => 'your_api_key',
-  :private_key => 'your_private_key',
+  :api_key => 'test_api_key',
+  :private_key => 'open_sesami',
   #:version => '1.4'
 }
 
 ACCOUNT = {
-  :user_name => 'your_soba_mieruka_account',
-  :password => 'your_account_password'
+  :user_name => 'shimokawa1@soba',
+  :password => 'shimokawa1'
 }
 
 def gen_str(len)
@@ -26,42 +26,59 @@ describe Soba::Mieruka do
   end
   
   it 'can log in with valid attributes.' do
-    res = @m.login(valid_account)
-    res.ok?.should be_true
-    res = @m.logout
-    res.ok?.should be_true
+    expect {
+      @m.login(valid_account)
+      @m.logout
+    }.should_not raise_error
   end
   
   context 'is logged in' do
     before do
-      res = @m.login(valid_account)
-      res.ok?.should be_true
+      expect {
+        @m.login(valid_account)
+      }.should_not raise_error
     end
     
     it 'make a new session' do
-      res = @m.create_session(:session_name => 'test', :session_description => 'this is a test')
-      res.ok?.should be_true
+      expect {
+        session = @m.create_session(:session_name => 'test', :session_description => 'this is a test')
+        session.should respond_to(:url)
+        session.should respond_to(:soba_session_id)
+      }.should_not raise_error
     end
     
     it 'get the session list' do
-      res = @m.sessions
-      res.ok?.should be_true
-      res.should respond_to(:sessions)
-      res.sessions.class.should == Array
+      expect {
+        sessions = @m.sessions
+        sessions.should be_a(Array)
+        sessions.each do |session|
+          session.should be_a(Soba::Mieruka::Session)
+          session.should respond_to(:id)
+          session.should respond_to(:title)
+          session.should respond_to(:description)
+          session.should respond_to(:creator_id)
+          session.should respond_to(:created_time)
+          session.should respond_to(:deleted_time)
+          session.should respond_to(:soba_session_id)
+          session.should respond_to(:scope)
+          session.should respond_to(:participants)
+        end
+      }.should_not raise_error
     end
     
     it 'can get users list' do
-      res = @m.users
-      res.ok?.should be_true
-      res.should respond_to(:users)
-      res.users.class.should == Array
+      expect {
+        users = @m.users
+        users.should be_a(Array)
+        users.each do |user|
+          user.should be_a(Soba::Mieruka::User)
+        end
+      }.should_not raise_error
     end
     
     context 'and some sessions exist' do
       before do
-        res = @m.sessions
-        res.ok?.should be_true
-        @sessions = res.sessions
+        @sessions = @m.sessions
       end
       
       it 'can join the session' do
@@ -72,43 +89,39 @@ describe Soba::Mieruka do
     end
     
     it 'can get rooms' do
-      res = @m.rooms
-      res.ok?.should be_true
-      res.should respond_to(:rooms)
-      res.rooms.class.should == Array
+      rooms = @m.rooms
+      rooms.should be_a(Array)
     end
     
     it 'can create and delete a room' do
-      rooms = @m.rooms.rooms
+      rooms = @m.rooms
       rooms.class.should == Array
       n = rooms.size
       
       name = 'room_' + gen_str(10)
-      res = @m.create_room(:name => name, :description => 'test room')
-      res.ok?.should be_true
-      res.should respond_to(:room)
-      room = res.room
+      room = @m.create_room(:name => name, :description => 'test room')
       room.name.should == name
       room.description.should == 'test room'
-      rooms = @m.rooms.rooms
+      rooms = @m.rooms
       rooms.size.should == (n + 1)
 
-      res = @m.delete_room(room.id)
-      res.ok?.should be_true
-      @m.rooms.rooms.size.should == n
+      expect {
+        @m.delete_room(room.id)
+      }.should_not raise_error
+      @m.rooms.size.should == n
     end
     
     it 'can change its own password' do
       old_password = valid_account[:password]
       new_password = gen_str(16)
-      res = @m.change_password(new_password)
-      res.ok?.should be_true
-      res = @m.login(valid_account.merge(:password => new_password))
-      res.ok?.should be_true
-      res = @m.change_password(old_password)
-      res.ok?.should be_true
-      res = @m.login(valid_account.merge(:password => new_password))
-      res.ok?.should be_false
+      expect {
+        @m.change_password(new_password)
+        @m.login(valid_account.merge(:password => new_password))
+        @m.change_password(old_password)
+      }.should_not raise_error
+      expect {
+        @m.login(valid_account.merge(:password => new_password))
+      }.should raise_error
     end
   end
   
