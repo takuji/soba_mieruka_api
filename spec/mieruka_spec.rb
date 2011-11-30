@@ -1,14 +1,14 @@
 require_relative '../lib/soba/mieruka'
 
 CONFIG = {
-  :api_key => 'test_api_key',
-  :private_key => 'open_sesami',
+  :api_key => 'your api key',
+  :private_key => 'your private key',
   #:version => '1.4'
 }
 
 ACCOUNT = {
-  :user_name => 'shimokawa1@soba',
-  :password => 'shimokawa1'
+  :user_name => 'you soba mieruka account',
+  :password => 'your password'
 }
 
 def gen_str(len)
