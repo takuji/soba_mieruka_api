@@ -198,6 +198,12 @@ module Soba
       res = request_with_auth(:POST, '/create_group_member', params)
       return ApiResponse.new(res)
     end
+
+    def delete_group_member(params)
+      required_params params, :userName, :groupName, :groupAdminName, :groupAdminPassword
+      res = request_with_auth(:POST, '/delete_group_member', params)
+      ApiResponse.new(res)
+    end
     
     def set_pap_layout(layout)
       response = request_with_auth(:POST, '/set_pap_layout', :layout => layout)
