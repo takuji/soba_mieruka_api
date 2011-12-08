@@ -183,7 +183,7 @@ module Soba
     
     def command_file(params)
       required_params params, :rid
-      auth = CGI.escape(Mieruka.auth_header(@token, @privkey))
+      auth = CGI.escape(Mieruka.auth_header(@token, @params[:private_key])
       return "http://%s%s/command.mkd?rid=%s&auth=%s" % [@server, @base_path, params[:rid], auth]
     end
 
@@ -253,7 +253,7 @@ module Soba
       http = Net::HTTP.start(@params[:host], @params[:port])
       req = nil
       real_path = @params[:base_path] + path
-      #params[:auth] = Mieruka.auth_header(@token, @privkey)
+      #params[:auth] = Mieruka.auth_header(@token, @params[:private_key])
       case method
       when :GET
         req = Mieruka::make_get_request(real_path, params)
