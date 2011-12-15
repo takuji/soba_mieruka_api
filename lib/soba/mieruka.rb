@@ -184,7 +184,7 @@ module Soba
     def command_file(params)
       required_params params, :rid
       auth = CGI.escape(Mieruka.auth_header(@token, @params[:private_key]))
-      return "http://%s%s/command.mkd?rid=%s&auth=%s" % [@server, @base_path, params[:rid], auth]
+      return "http://#{@params[:host]}#{@params[:base_path]}/command.mkd?rid=#{params[:rid]}&auth=#{auth}"
     end
 
     def create_group(params)
