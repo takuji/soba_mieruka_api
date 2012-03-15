@@ -105,9 +105,8 @@ module Soba
 
     def join_session(params)
       required_params params, :session_id
-      sid = CGI.escape(params['session_id'])
+      sid = CGI.escape(params[:session_id])
       response = request_with_auth(:GET, "/join_session?session_id=#{sid}")
-      puts response.body
       make_response(response) do |doc, res|
         Struct.new(:url).new(CGI.unescapeHTML(doc.root.elements["url"].get_text.to_s))
       end
