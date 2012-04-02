@@ -138,6 +138,11 @@ module Soba
       make_response(response)
     end
 
+    def change_nickname(new_nickname)
+      response = request_with_auth(:POST, '/change_nickname', :newNickname => new_nickname)
+      make_response(response)
+    end
+
     def get_command(session_url)
       # Returns a Command object which contains a URL to create or join the session
       take_action(GetCommand)
